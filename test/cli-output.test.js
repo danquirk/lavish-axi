@@ -43,6 +43,7 @@ import {
 import { serve } from "../src/server.js";
 
 function setupHooksEnv(homeDir, stateDir) {
+  // eslint-disable-next-line no-unused-vars
   const { COPILOT_HOME, ...env } = process.env;
   return { ...env, HOME: homeDir, LAVISH_AXI_STATE_DIR: stateDir };
 }
