@@ -42,6 +42,11 @@ import {
 } from "../src/cli.js";
 import { serve } from "../src/server.js";
 
+function setupHooksEnv(homeDir, stateDir) {
+  const { COPILOT_HOME, ...env } = process.env;
+  return { ...env, HOME: homeDir, LAVISH_AXI_STATE_DIR: stateDir };
+}
+
 test("CLI version tracks package.json so release-please bumps reach the published binary", async () => {
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
   assert.equal(VERSION, packageJson.version);
@@ -605,7 +610,7 @@ test("setup hooks installs agent session hooks explicitly", async () => {
       {
         cwd: fileURLToPath(new URL("..", import.meta.url)),
         encoding: "utf8",
-        env: { ...process.env, HOME: homeDir, LAVISH_AXI_STATE_DIR: stateDir },
+        env: setupHooksEnv(homeDir, stateDir),
       },
     );
 
@@ -641,7 +646,7 @@ test("setup hooks exits with an error when hook installation fails", async () =>
       {
         cwd: fileURLToPath(new URL("..", import.meta.url)),
         encoding: "utf8",
-        env: { ...process.env, HOME: homeDir, LAVISH_AXI_STATE_DIR: stateDir },
+        env: setupHooksEnv(homeDir, stateDir),
       },
     );
 
