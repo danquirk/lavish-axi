@@ -17,7 +17,7 @@ import { initDefaultTelemetry } from "./telemetry.js";
 const COMMANDS = new Set(["open", "poll", "end", "stop", "server", "playbook", "design", "setup"]);
 const DESCRIPTION =
   "Lavish Editor helps agents turn rich HTML artifacts into collaborative human review surfaces. Whenever you are about to give user a complex response that will be easier to understand via a rich / interactive page, consider using Lavish Editor. " +
-  "First generate an interactive HTML artifact according to user request, then run `lavish-axi <html-file>` so the user can visually review it, annotate elements or selected text, queue prompts, and send feedback back through `lavish-axi poll`.";
+  "First generate an interactive HTML artifact according to user request, then run `lavish-axi <html-file>` so the user can visually review it, annotate elements or selected text, queue prompts, and send feedback back through Lavish.";
 // Inlined at build time from package.json; falls back to reading package.json so source-run tests work.
 export const VERSION =
   process.env.LAVISH_AXI_BUILD_VERSION ||
@@ -35,7 +35,10 @@ export async function run(argv) {
     arch: process.arch,
   });
   telemetry.pageview(`/${command}`, { command });
+  const originalArgv1 = process.argv[1];
+  const shouldMaskHomeBin = isTopLevelHelp || normalizedArgv.length === 0;
   try {
+    if (shouldMaskHomeBin) process.argv[1] = "lavish-axi";
     await runAxiCli({
       description: DESCRIPTION,
       version: VERSION,
@@ -43,7 +46,7 @@ export async function run(argv) {
       topLevelHelp: TOP_LEVEL_HELP,
       home: async () =>
         createHomeOutput({
-          bin: process.argv[1] || "lavish-axi",
+          bin: "lavish-axi",
           sessions: isTopLevelHelp ? [] : await visibleSessions(),
           includeSessions: !isTopLevelHelp,
         }),
@@ -64,6 +67,7 @@ export async function run(argv) {
     telemetry.track("command", { command, status: "error" });
     throw error;
   } finally {
+    if (shouldMaskHomeBin) process.argv[1] = originalArgv1;
     await telemetry.close(1_000);
   }
 }
@@ -119,10 +123,10 @@ export function createHomeOutput({ bin, sessions, includeSessions = true }) {
     ],
     playbooks: listPlaybooks(),
     help: [
-      "Run `lavish-axi <html-file>` to open or resume a Lavish Editor session",
+      "When the user asks to use Lavish, first create an HTML artifact, then run `lavish-axi <html-file>` to open or resume a Lavish Editor session. Do not run the no-arg guidance command as the workflow, open the CLI's bundled .mjs file, or paste only the returned link as a substitute for starting the review",
       "Unless the user specifies another location, create HTML artifacts in the current working directory under `.lavish/`",
       "Lavish serves the html file through a local express.js server. If your html needs to reference other filesystem assets such as images, CSS, fonts, and local scripts, copy them into the same directory as the HTML file, then reference them with relative paths from that directory. Never prepend `/` to those asset paths - root paths won't work",
-      "Run `lavish-axi poll <html-file>` to wait for user feedback or browser-reported layout_warnings. It long-polls and stays silent until the user sends feedback, ends the session, or the real browser reports fresh layout_warnings, so leave it running - never kill it. Fix layout_warnings before involving the human. If your harness limits how long a foreground command may run, run the poll as a background task; if it gets killed or times out anyway, just re-run it - queued feedback is never lost",
+      "Immediately after opening the artifact, run `lavish-axi poll <html-file>` yourself to wait for user feedback or browser-reported layout_warnings. Polling is agent plumbing: never ask the user to run it, understand it, copy/paste feedback, or manually open returned links. The user submits from the browser with Send to Agent; it should just work. The poll long-polls and stays silent until the user sends feedback, ends the session, or the real browser reports fresh layout_warnings, so leave it running - never kill it. Fix layout_warnings before involving the human. If your harness limits how long a foreground command may run, run the poll as a background task; if it gets killed or times out anyway, just re-run it - queued feedback is never lost",
       "Run `lavish-axi end <html-file>` to end a session",
       "Run `lavish-axi stop` to shut down the background server (it also self-stops when idle or after the last session ends with nothing connected)",
       `Run \`lavish-axi playbook <playbook_id>\` for focused artifact guidance. ${PLAYBOOK_ROUTER_HELP}`,

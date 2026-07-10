@@ -79,6 +79,12 @@ test("home output teaches agents when and how to use Lavish Editor", () => {
     "Must be used when the agent needs to collect user input on decisions, choices, preferences, triage, scope, or other structured feedback from within the artifact",
   );
   assert.ok(output.help.some((item) => item.includes("lavish-axi <html-file>")));
+  assert.ok(output.help.some((item) => item.includes("Do not run the no-arg guidance command")));
+  assert.ok(output.help.some((item) => item.includes("bundled .mjs file")));
+  assert.ok(output.help.some((item) => item.includes("Send to Agent")));
+  assert.ok(output.help.some((item) => item.includes("copy/paste feedback")));
+  assert.ok(output.help.some((item) => item.includes("never ask the user to run it")));
+  assert.ok(output.help.some((item) => item.includes("it should just work")));
   assert.ok(output.help.some((item) => item.includes("`.lavish/`")));
   assert.ok(output.help.some((item) => item.includes("lavish-axi playbook <playbook_id>")));
   assert.ok(output.help.some((item) => item.includes("combines several playbooks")));
@@ -113,6 +119,11 @@ test("home output warns agents that poll is a long poll they must not kill", () 
   const pollHelp = output.help.find((item) => item.includes("lavish-axi poll <html-file>"));
 
   assert.ok(pollHelp, "home help mentions the poll command");
+  assert.match(pollHelp, /Immediately after opening/);
+  assert.match(pollHelp, /Send to Agent/);
+  assert.match(pollHelp, /never ask the user/);
+  assert.match(pollHelp, /copy\/paste feedback/);
+  assert.match(pollHelp, /it should just work/);
   assert.match(pollHelp, /long-poll/);
   assert.match(pollHelp, /stays silent/);
   assert.match(pollHelp, /never kill it/);
@@ -136,6 +147,8 @@ test("top-level help renders static home output without dynamic sessions", async
     );
 
     assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.match(result.stdout, /bin: lavish-axi/);
+    assert.doesNotMatch(result.stdout, /dist[\\/]cli\.mjs/);
     assert.match(result.stdout, /playbooks\[7\]/);
     assert.match(result.stdout, /lavish-axi playbook <playbook_id>/);
     assert.match(result.stdout, /reference other filesystem assets/);

@@ -538,7 +538,11 @@ test("chrome shows a waiting banner when no agent has attached", async () => {
   const css = await chromeCssSource();
 
   assert.match(html, /id="presenceBanner"/);
-  assert.match(html, /Your agent is not listening/);
+  assert.match(html, /Your agent is reconnecting/);
+  assert.match(html, /Click Send to Agent after adding feedback/);
+  assert.match(html, /deliver it automatically/);
+  assert.match(html, /No copy\/paste needed/);
+  assert.doesNotMatch(html, /lavish-axi poll/);
   assert.match(js, /presenceBanner\.hidden = ended \|\| agentPresence !== "waiting"/);
   assert.match(css, /\.presence-banner\{/);
 });
