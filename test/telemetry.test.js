@@ -33,9 +33,9 @@ function createFetchSpy(options = {}) {
   return { fetch, requests, release };
 }
 
-test("telemetry can be disabled by environment", () => {
+test("telemetry is off by default (opt-in), even with a website id configured", () => {
   const config = resolveTelemetryConfig({
-    env: { LAVISH_AXI_TELEMETRY: "0" },
+    env: { LAVISH_AXI_UMAMI_HOST: "https://env.example", LAVISH_AXI_UMAMI_WEBSITE_ID: "env-id" },
     buildHost: "https://build.example",
     buildWebsiteID: "build-id",
   });
@@ -43,9 +43,32 @@ test("telemetry can be disabled by environment", () => {
   assert.equal(config.enabled, false);
 });
 
-test("telemetry uses env values before build-time defaults", () => {
+test("telemetry stays off unless explicitly opted in", () => {
+  for (const value of ["", "0", "false", "off", "no", "enabled", "yeah"]) {
+    const config = resolveTelemetryConfig({
+      env: { LAVISH_AXI_TELEMETRY: value, LAVISH_AXI_UMAMI_WEBSITE_ID: "env-id" },
+      buildHost: "https://build.example",
+      buildWebsiteID: "build-id",
+    });
+    assert.equal(config.enabled, false, `expected disabled for LAVISH_AXI_TELEMETRY=${JSON.stringify(value)}`);
+  }
+});
+
+test("telemetry turns on only for explicit opt-in values", () => {
+  for (const value of ["1", "true", "on", "yes", "TRUE", " On "]) {
+    const config = resolveTelemetryConfig({
+      env: { LAVISH_AXI_TELEMETRY: value, LAVISH_AXI_UMAMI_WEBSITE_ID: "env-id" },
+      buildHost: "https://build.example",
+      buildWebsiteID: "build-id",
+    });
+    assert.equal(config.enabled, true, `expected enabled for LAVISH_AXI_TELEMETRY=${JSON.stringify(value)}`);
+  }
+});
+
+test("opted-in telemetry uses env values before build-time defaults", () => {
   const config = resolveTelemetryConfig({
     env: {
+      LAVISH_AXI_TELEMETRY: "1",
       LAVISH_AXI_UMAMI_HOST: " https://env.example ",
       LAVISH_AXI_UMAMI_WEBSITE_ID: " env-id ",
     },
@@ -60,9 +83,9 @@ test("telemetry uses env values before build-time defaults", () => {
   });
 });
 
-test("telemetry disables when no website id is configured", () => {
+test("opted-in telemetry still disables when no website id is configured", () => {
   const config = resolveTelemetryConfig({
-    env: {},
+    env: { LAVISH_AXI_TELEMETRY: "1" },
     buildHost: "https://build.example",
     buildWebsiteID: "",
   });
