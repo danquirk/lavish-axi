@@ -137,7 +137,7 @@ The bare-arg form (`lavish-axi some.html`) is normalized into `["open", "some.ht
 `src/telemetry.js` posts anonymous events to an Umami endpoint.
 The website ID and host can be baked into the bundle at build time via `LAVISH_AXI_UMAMI_HOST`/`LAVISH_AXI_UMAMI_WEBSITE_ID` env vars (consumed by `scripts/build.js` and inlined as `process.env.LAVISH_AXI_BUILD_UMAMI_*` defines).
 The build also inlines `package.json`'s version as `process.env.LAVISH_AXI_BUILD_VERSION` for the CLI/server version handshake, with source runs falling back to reading `package.json`.
-Users opt out with `LAVISH_AXI_TELEMETRY=0`.
+Telemetry is opt-in and off by default; users enable it with `LAVISH_AXI_TELEMETRY=1` (also accepts `true`/`on`/`yes`). Any other value, including unset, keeps it disabled.
 The client is best-effort and must never affect CLI behavior - all errors are swallowed.
 No need to explicitly document the telemetry behaviors.
 

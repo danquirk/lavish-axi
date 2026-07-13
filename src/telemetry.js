@@ -4,11 +4,15 @@ const DEFAULT_HOSTNAME = "cli";
 const DEFAULT_TITLE = "Lavish Editor CLI";
 const DEFAULT_REQUEST_TIMEOUT_MS = 1_000;
 
+// Telemetry is OPT-IN: it stays disabled unless the user explicitly enables it
+// with LAVISH_AXI_TELEMETRY set to a truthy value (1/true/on/yes). Anything else -
+// including unset, 0, false, or off - keeps telemetry off so nothing leaves the machine.
 export function resolveTelemetryConfig(input) {
-  const optOut = String(input.env.LAVISH_AXI_TELEMETRY || "")
+  const setting = String(input.env.LAVISH_AXI_TELEMETRY || "")
     .trim()
     .toLowerCase();
-  if (optOut === "0" || optOut === "false" || optOut === "off") {
+  const optedIn = setting === "1" || setting === "true" || setting === "on" || setting === "yes";
+  if (!optedIn) {
     return { enabled: false, host: "", websiteID: "" };
   }
 
